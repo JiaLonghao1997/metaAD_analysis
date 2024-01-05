@@ -1,0 +1,9 @@
+#configfile for metaphlan3 workflow
+
+outdir: kraken2
+db: /home1/jialh/brain/databases/Kraken2/db
+readlength: 150
+
+# sample file: tsv with sample information in first column
+# SAMPLE	READS1	READS2
+sample_file: classification_input.txt

@@ -1,0 +1,390 @@
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 20
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 20
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_KOs+ConQuR/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_KOs+ConQuR_RandomForest+RFECV20.csv:   stage  ...                                  selected_features
+0    AD  ...  K00768,K01750,K01839,K01951,K02081,K02198,K022...
+1    AD  ...  K00768,K01750,K01839,K01951,K02081,K02198,K022...
+2    AD  ...  K00768,K01750,K01839,K01951,K02081,K02198,K022...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 20
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 20
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_pathways+ConQuR/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_pathways+ConQuR_RandomForest+RFECV20.csv:   stage  ...                                  selected_features
+0    AD  ...  map00290,map00330,map00400,map00472,map00621,m...
+1    AD  ...  map00290,map00330,map00400,map00472,map00621,m...
+2    AD  ...  map00290,map00330,map00400,map00472,map00621,m...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 20
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 20
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_species/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_ABFV_RandomForest+RFECV20.csv:   stage  ...                                  selected_features
+0    AD  ...  k__Bacteria|p__Actinobacteria|c__Actinomycetia...
+1    AD  ...  k__Bacteria|p__Actinobacteria|c__Actinomycetia...
+2    AD  ...  k__Bacteria|p__Actinobacteria|c__Actinomycetia...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 10
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 10
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_KOs/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_KOs_RandomForest+RFECV20.csv:   stage  ...                                  selected_features
+0    AD  ...  K00768,K01750,K01951,K02081,K02200,K02393,K033...
+1    AD  ...  K00768,K01750,K01951,K02081,K02200,K02393,K033...
+2    AD  ...  K00768,K01750,K01951,K02081,K02200,K02393,K033...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 20
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 20
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_pathways/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_pathways_RandomForest+RFECV20.csv:   stage  ...                                  selected_features
+0    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+1    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+2    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 55
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 55
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_pathways+ConQuR/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_pathways+ConQuR_RandomForest+RFECV_X4.csv:   stage  ...                                  selected_features
+0    AD  ...  map00040,map00072,map00290,map00330,map00400,m...
+1    AD  ...  map00040,map00072,map00290,map00330,map00400,m...
+2    AD  ...  map00040,map00072,map00290,map00330,map00400,m...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 61
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 61
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_pathways/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_pathways_RandomForest+RFECV_X4.csv:   stage  ...                                  selected_features
+0    AD  ...  map00040,map00061,map00072,map00250,map00270,m...
+1    AD  ...  map00040,map00061,map00072,map00250,map00270,m...
+2    AD  ...  map00040,map00061,map00072,map00250,map00270,m...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 22
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 22
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_species/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_ABFV_RandomForest+RFECV.csv:   stage  ...                                  selected_features
+0    AD  ...  k__Bacteria|p__Actinobacteria|c__Actinomycetia...
+1    AD  ...  k__Bacteria|p__Actinobacteria|c__Actinomycetia...
+2    AD  ...  k__Bacteria|p__Actinobacteria|c__Actinomycetia...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 78
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 78
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_KOs+ConQuR/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_KOs+ConQuR_RandomForest+RFECV.csv:   stage  ...                                  selected_features
+0    AD  ...  K00245,K00265,K00282,K00284,K00356,K00768,K008...
+1    AD  ...  K00245,K00265,K00282,K00284,K00356,K00768,K008...
+2    AD  ...  K00245,K00265,K00282,K00284,K00356,K00768,K008...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 89
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 89
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_species/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_ABFV_RandomForest+RFECV_X4.csv:   stage  ...                                  selected_features
+0    AD  ...  k__Archaea|p__Candidatus_Thermoplasmatota|c__T...
+1    AD  ...  k__Archaea|p__Candidatus_Thermoplasmatota|c__T...
+2    AD  ...  k__Archaea|p__Candidatus_Thermoplasmatota|c__T...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 315
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 315
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_KOs/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_KOs_RandomForest+RFECV_X4.csv:   stage  ...                                  selected_features
+0    AD  ...  K00011,K00012,K00048,K00053,K00099,K00112,K001...
+1    AD  ...  K00011,K00012,K00048,K00053,K00099,K00112,K001...
+2    AD  ...  K00011,K00012,K00048,K00053,K00099,K00112,K001...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 281
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 281
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_KOs+ConQuR/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_KOs+ConQuR_RandomForest+RFECV_X4.csv:   stage  ...                                  selected_features
+0    AD  ...  K00005,K00040,K00053,K00054,K00060,K00066,K001...
+1    AD  ...  K00005,K00040,K00053,K00054,K00060,K00066,K001...
+2    AD  ...  K00005,K00040,K00053,K00054,K00060,K00066,K001...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 79
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 79
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_KOs/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_KOs_RandomForest+RFECV.csv:   stage  ...                                  selected_features
+0    AD  ...  K00112,K00245,K00284,K00641,K00768,K00897,K009...
+1    AD  ...  K00112,K00245,K00284,K00641,K00768,K00897,K009...
+2    AD  ...  K00112,K00245,K00284,K00641,K00768,K00897,K009...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 15
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 15
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_pathways/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_pathways_RandomForest+RFECV.csv:   stage  ...                                  selected_features
+0    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+1    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+2    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+
+[3 rows x 15 columns]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+stage: AD, study: CHN+CHN2, sampler: None, count: [(0, 61), (1, 123)]
+stage: AD, study: GER, sampler: None, count: [(0, 100), (1, 60)]
+Optimal number of features : 15
+stage: AD, study: JPN, sampler: None, count: [(0, 21), (1, 7)]
+Optimal number of features : 15
+CrossValidation using BalancedRandomForest
+/home1/jialh/brain/01meta/multikingdom/06transfer/CHN+CHN2_pathways+ConQuR/BalancedRandomForest/01CV_CHN+CHN2_AD_BalancedRandomForest_pathways+ConQuR_RandomForest+RFECV.csv:   stage  ...                                  selected_features
+0    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+1    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+2    AD  ...  map00290,map00330,map00650,map00860,map00910,m...
+
+[3 rows x 15 columns]
+['Study', 'Age', 'Gender', 'Group', 'Edu_yrs', 'Edu', 'BMI', 'ND_score', 'ECOG_score', 'MMSE', 'MoCA_B', 'ACEIII_score', 'raw_count', 'host_removed_count', 'k__Archaea|p__Candidatus_Korarchaeota|g__Candidatus_Korarchaeum|s__Candidatus_Korarchaeum_cryptofilum']
+Study  Group
+CHN    AD        58
+       MCI       61
+       NC        32
+       SCD       40
+       SCS       41
+CHN2   AD        65
+       MCI       58
+       NC        29
+       SCD       50
+       SCS       42
+GER    AD        60
+       NC       100
+JPN    AD         7
+       MCI       15
+       NC        21
+Name: Group, dtype: int64
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+['Study', 'Age', 'Gender', 'Group', 'Edu_yrs', 'Edu', 'BMI', 'ND_score', 'ECOG_score', 'MMSE', 'MoCA_B', 'ACEIII_score', 'raw_count', 'host_removed_count', 'K00001']
+Study  Group
+CHN    AD        58
+       MCI       61
+       NC        32
+       SCD       40
+       SCS       41
+CHN2   AD        65
+       MCI       58
+       NC        29
+       SCD       50
+       SCS       42
+GER    AD        60
+       NC       100
+JPN    AD         7
+       MCI       14
+       NC        21
+Name: Group, dtype: int64
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+['Study', 'Age', 'Gender', 'Group', 'Edu_yrs', 'Edu', 'BMI', 'ND_score', 'ECOG_score', 'MMSE', 'MoCA_B', 'ACEIII_score', 'raw_count', 'host_removed_count', 'map00010']
+Study  Group
+CHN    AD        58
+       MCI       61
+       NC        32
+       SCD       40
+       SCS       41
+CHN2   AD        65
+       MCI       58
+       NC        29
+       SCD       50
+       SCS       42
+GER    AD        60
+       NC       100
+JPN    AD         7
+       MCI       14
+       NC        21
+Name: Group, dtype: int64
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+['Study', 'Age', 'Gender', 'Group', 'Edu_yrs', 'Edu', 'BMI', 'ND_score', 'ECOG_score', 'MMSE', 'MoCA_B', 'ACEIII_score', 'raw_count', 'host_removed_count', 'k__Archaea|p__Candidatus_Thermoplasmatota|c__Thermoplasmata|o__Methanomassiliicoccales|f__Candidatus_Methanomethylophilaceae|g__Candidatus_Methanomethylophilus|s__Candidatus_Methanomethylophilus_alvus']
+Study  Group
+CHN    AD        58
+       MCI       61
+       NC        32
+       SCD       40
+       SCS       41
+CHN2   AD        65
+       MCI       58
+       NC        29
+       SCD       50
+       SCS       42
+GER    AD        60
+       NC       100
+JPN    AD         7
+       MCI       15
+       NC        21
+Name: Group, dtype: int64
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+['Study', 'Age', 'Gender', 'Group', 'Edu_yrs', 'Edu', 'BMI', 'ND_score', 'ECOG_score', 'MMSE', 'MoCA_B', 'ACEIII_score', 'raw_count', 'host_removed_count', 'K00001']
+Study  Group
+CHN    AD        58
+       MCI       61
+       NC        32
+       SCD       40
+       SCS       41
+CHN2   AD        65
+       MCI       58
+       NC        29
+       SCD       50
+       SCS       42
+GER    AD        60
+       NC       100
+JPN    AD         7
+       MCI       14
+       NC        21
+Name: Group, dtype: int64
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+['Study', 'Age', 'Gender', 'Group', 'Edu_yrs', 'Edu', 'BMI', 'ND_score', 'ECOG_score', 'MMSE', 'MoCA_B', 'ACEIII_score', 'raw_count', 'host_removed_count', 'map00010']
+Study  Group
+CHN    AD        58
+       MCI       61
+       NC        32
+       SCD       40
+       SCS       41
+CHN2   AD        65
+       MCI       58
+       NC        29
+       SCD       50
+       SCS       42
+GER    AD        60
+       NC       100
+JPN    AD         7
+       MCI       14
+       NC        21
+Name: Group, dtype: int64
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+begin to deal with NC-AD by BalancedRandomForest_CHN+CHN2
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home1/jialh/anaconda3/lib/python3.9/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+  File "/home1/jialh/brain/01meta/multikingdom/scripts/main_transfer_after_RFECV.py", line 32, in run
+    train_X, train_sample_list, train_y, test_study_dic, feature_list, n_features_in, n_features, selected_features = preprare_train_and_test(
+  File "/home1/jialh/brain/01meta/multikingdom/scripts/utils/train_test_split.py", line 73, in preprare_train_and_test
+    train_X, test_X, feature_list = transfer_feature_selection(train_X, train_y, test_X, feature_list, fs_method)
+  File "/home1/jialh/brain/01meta/multikingdom/scripts/utils/feature_selection.py", line 221, in transfer_feature_selection
+    train_X = sk_selector.fit_transform(train_X, train_y)
+NameError: name 'train_y' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home1/jialh/brain/01meta/multikingdom/scripts/main_transfer_after_RFECV.py", line 117, in <module>
+    main()
+  File "/home1/jialh/brain/01meta/multikingdom/scripts/main_transfer_after_RFECV.py", line 109, in main
+    result_df = result.get()
+  File "/home1/jialh/anaconda3/lib/python3.9/multiprocessing/pool.py", line 771, in get
+    raise self._value
+NameError: name 'train_y' is not defined

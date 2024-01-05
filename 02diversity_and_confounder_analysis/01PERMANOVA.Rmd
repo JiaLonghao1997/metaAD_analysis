@@ -1,0 +1,353 @@
+---
+title: "PERMANOVA"
+author: "jialh"
+date: "2023-08-22"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1.置换多元方差分析(PERMANOVA)
+
+```{r cars}
+library(vegan)
+library(data.table)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+
+#rm(list=ls())
+```
+
+定义进行置换多元方差分析(PERMANOVA)的函数
+
+```{r}
+PERMANOVA_analysis <- function(features, metadata, feat_type, outdir){
+    #features = features_filter
+    
+    BC.dist = vegdist(features, distance="bray")
+    #Run PERMANOVA on distances.
+    result = adonis2(BC.dist ~ Batch+Age+Gender+Group+Edu_yrs+BMI+ND_score+ECOG_score+MMSE+MoCA_B+ACEIII_score+host_removed_count, data = metadata, permutations = 999, by="margin")
+    
+    ###结果整理
+    result_df = as.data.frame(vegan::scores(result))
+    result_df_filter = result_df[!(rownames(result_df) %in% c("Residual", "Total")), ]
+    #result_df_sort = result_df_filter[order(result_df_filter$R2,decreasing=TRUE),]
+    result_df_filter$variable = row.names(result_df_filter)
+    
+    ###
+    result_df_filter$variable[which(result_df_filter$variable=="host_removed_count")] <- "ReadsCount"
+    result_df_filter$variable[which(result_df_filter$variable=="Batch")] <- "Batch"
+    result_df_filter$variable[which(result_df_filter$variable=="ND_score")] <- "Diet"
+    result_df_filter$variable[which(result_df_filter$variable=="Edu_yrs")] <- "EduYears"
+    result_df_filter$variable[which(result_df_filter$variable=="ECOG_score")] <- "ECOG"
+    result_df_filter$variable[which(result_df_filter$variable=="ACEIII_score")] <- "ACEIII"
+    
+    colnames(result_df_filter)[which(colnames(result_df_filter)=="Pr(>F)")] <- "Pvalue"
+    
+    result_df_filter$log_Pvalue = -log10(result_df_filter$Pvalue)
+    result_df_filter$percent_R2 = 100 * (result_df_filter$R2)
+    
+    result_df_sort = result_df_filter[order(result_df_filter$percent_R2,decreasing=TRUE),]
+    colnames(result_df_sort)
+    rownames(result_df_sort)
+    
+    #write.csv(result_df_sort, file.path(outdir, paste0("adonis2_result_", feat_type, ".csv")), row.names=FALSE)
+    
+    ###结果整理
+    ####
+    result_df_melt <- reshape2::melt(data=result_df_sort[,c("variable", 'percent_R2','log_Pvalue')],
+                           id.vars = "variable", variable.name="Group", value.name="Count")
+    
+    ###
+    print(unique(result_df_melt$Group))
+    result_df_melt$Group <- as.character(result_df_melt$Group)
+    result_df_melt$Group[result_df_melt$Group=="percent_R2"] = "Variance"
+    result_df_melt$Group[result_df_melt$Group=="log_Pvalue"] = "P value"
+    
+    
+    print(colnames(result_df_sort))
+    result_df_melt$variable = factor(result_df_melt$variable,
+         levels=c(unique(result_df_melt$variable)))
+    
+    result_df_melt$Group = factor(result_df_melt$Group, levels=c('P value', 'Variance'))
+    
+    result_df_melt$feat_type = feat_type
+    write.csv(result_df_sort, file.path(outdir, paste0("adonis2_result_", feat_type, ".csv")), row.names=FALSE)
+    ###
+    result_df_melt2 = result_df_melt %>%
+        mutate(scaled_count=ifelse(Group=="P value",Count, Count*2))
+    
+    ###结果绘图
+    
+    colors = c("#ffa500", "#2970a0")
+    img <- ggplot(result_df_melt2, aes(x=variable, y = scaled_count, fill= Group)) + 
+      geom_col(position="dodge") + 
+      geom_hline(yintercept=-log10(0.05), linetype="dashed", size=0.5, color = "black") + 
+      annotate("text", x=10, y=-log10(0.05)+0.15, label="P < 0.05") + 
+      scale_fill_manual(values=colors) + 
+      scale_y_continuous(
+          name="PERMANOVA P-value", breaks=c(0, 1, 2, 3), limits=c(0, 3.2), labels=c('1', '0.1', '0.01', '0.001'),
+          sec.axis = sec_axis(trans=~.*0.5,   name = "Variance explained (%)", breaks=c(0, 0.5, 1, 1.5)))+
+      labs(title ="PERMANOVA (n=476)") + 
+      theme_bw() + 
+      theme(
+        axis.text.x = element_text(size=12, hjust = 1, angle =30),
+        axis.text.y = element_text(size=12, hjust = 0.5),
+        axis.title.x = element_text(size=12, hjust = 0.5),
+        axis.title.y = element_text(size=12, color = "#ffa500",  hjust = 0.5),
+        axis.title.y.right = element_text(size=12, color = "#2970a0",  hjust = 0.5),
+        plot.title = element_text(size=14, hjust=0.5),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()
+      )
+    
+    print(img)
+    
+    pdf(file.path(workdir, file.path(outdir, paste0("adonis2_result_", feat_type, ".pdf"))), width=7, height=3.5)
+    print(img)
+    dev.off()
+    return(result_df_melt)
+}
+```
+
+预处理, 划分metadata和features,
+仅保留至少在10%的样本中丰度超过1e-4的物种。
+
+```{r preprocess}
+inputdir = "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\00profile"
+workdir = "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\02confounder_analysis"
+setwd(workdir)
+
+taxon_types = c("species", "KOs")
+Adonis_res <- NULL
+for(taxon_type in taxon_types){
+    if(taxon_type=="species"){
+        feat_types = c("A", "B", "F", "V", "ABFV")
+    }else if(taxon_type=="KOs"){
+        feat_types = c("KOs")
+    }
+    metadata_features = data.table::fread(file.path(inputdir, paste0("metadata_", taxon_type, ".csv")), sep=",")
+    metadata_features = as.data.frame(metadata_features)
+    rownames(metadata_features) = metadata_features$Sample
+    
+    metadata_features_filter = metadata_features[metadata_features$Batch %in% c('CHN', 'CHN2'), ]
+    metadata = metadata_features_filter[, 1:15]
+    ##convert chr columns to num columns.
+    metadata$BMI <- as.numeric(as.character(metadata$BMI))  
+    
+    features = metadata_features_filter[, 16:ncol(metadata_features_filter)]
+    print(rownames(features)[0:10])
+    
+    source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\01preprocess\\01feature_prepare.R")
+    for(feat_type in feat_types){
+        if(feat_type %in% c("A", "B", "F", "F", "ABFV")){
+            features_rel = merge_feats(taxon=features, feat_type=feat_type, min_abundance=1e-4, min_prevalence=0.1)
+            features_filter = features[, colnames(features) %in% colnames(features_rel)]
+        }else if(feat_type == "KOs"){
+            features_rel = merge_feats(taxon=features, feat_type=feat_type, min_abundance=1e-6, min_prevalence=0.1)
+            features_filter = features[, colnames(features) %in% colnames(features_rel)]
+            features_filter = round(features_filter)
+        }
+        ###开始运行置换多元方差分析。
+        print(paste0("PERMANOVA analysis for ", feat_type))
+        result <- PERMANOVA_analysis(features_filter, metadata, feat_type, outdir)
+        Adonis_res <- bind_rows(Adonis_res, res)
+    }
+}
+write.csv(Adonis_res, file.path(outdir, "adonis2_result_merge.csv"))
+```
+========================后续代码用于特征过滤和结果作图。======================================
+
+```{r preprocess}
+metadata_features = fread(file.path(inputdir, "metadata_KOs.csv"), sep=",")
+metadata_features = as.data.frame(metadata_features)
+rownames(metadata_features) = metadata_features$Sample
+
+metadata_features_filter = metadata_features[metadata_features$Batch %in% c('CHN', 'CHN2'), ]
+metadata = metadata_features_filter[, 1:15]
+features = metadata_features_filter[, 16:ncol(metadata_features_filter)]
+print(rownames(features)[0:10])
+
+source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\01preprocess\\01feature_prepare.R")
+features_rel = merge_feats(taxon=features, feat_type="KOs", min_abundance=1e-6, min_prevalence=0.1)
+features_filter = features[, colnames(features) %in% colnames(features_rel)]
+print(dim(features_rel))
+# A_df = features_rel[, grepl("k__Archaea", colnames(features_rel))]
+# B_df = features_rel[, grepl("k__Bacteria", colnames(features_rel))]    
+# F_df = features_rel[, grepl("k__Eukaryota.k__Fungi", colnames(features_rel))]
+# V_df = features_rel[, grepl("k__Viruses", colnames(features_rel))]
+```
+
+查看可以用于方差分析的列:
+
+```{r}
+str(metadata)
+# metadata$Batch[which(metadata$Batch=="CHN")] <- 1
+# metadata$Batch[which(metadata$Batch=="CHN2")] <- 2
+# 
+# metadata$Gender[which(metadata$Gender=="M")] <- 0
+# metadata$Gender[which(metadata$Gender=="F")] <- 1
+# 
+# metadata$Group[which(metadata$Group=="NC")] <- 0
+# metadata$Group[which(metadata$Group=="SCS")] <- 1
+# metadata$Group[which(metadata$Group=="SCD")] <- 2
+# metadata$Group[which(metadata$Group=="MCI")] <- 3
+# metadata$Group[which(metadata$Group=="AD")] <- 4
+
+
+##convert chr columns to num columns.
+metadata$BMI <- as.numeric(as.character(metadata$BMI))  
+
+```
+
+使用vegan包的`adonis()`函数进行置换多元方差: 例如，用 lm 和 glm
+函数拟合的模型是以紧凑的符号形式指定的。\~
+运算符是建立此类模型的基本运算符。y \~ model 形式的表达式被解释为响应 y
+由 model 符号化的线性预测因子建模。这种模型由一系列用 +
+运算符分隔的项组成。 项本身由变量名和因子名组成，用:运算符分隔。
+这样的术语被解释为术语中出现的所有变量和因子的相互作用。 除了 + 和 :
+操作符外，还有一些其他操作符在模型公式中也很有用。 - \*
+该运算符表示因子交叉：a*b 解释为 a + b + a:b。 - \^
+运算符表示交叉到指定的程度。例如，(a+b+c)\^2 与 (a+b+c)*(a+b+c) 相同，而
+(a+b+c)\*(a+b+c) 则扩展为包含 a、b 和 c
+的主效应及其二阶交互作用的公式。 - %in%
+运算符表示左边的项嵌套在右边的项中。例如，a + b %in% a 表示公式 a +
+a:b。 - / 运算符提供了一个速记符号，因此 a / b 相当于 a + b %in% a。
+运算符 - 删除指定项，因此 (a+b+c)\^2 - a:b 与 a + b + c + b:c + a:c
+相同。它还可以用来删除截距项：当拟合线性模型 y \~ x - 1
+时，指定一条通过原点的直线。没有截距的模型也可以指定为 y \~ x + 0 或 y
+\~ 0 + x。
+
+```{r}
+features_rar = vegan::rrarefy(round(features_filter), sample=min(rowSums(features_filter)))
+#Calculate distance and save as a matrix
+BC.dist = vegdist(features_rar, distance="bray")
+#Run PERMANOVA on distances.
+result = adonis2(BC.dist ~ Batch+Age+Gender+Group+Edu_yrs+BMI+ND_score+ECOG_score+MMSE+MoCA_B+ACEIII_score+host_removed_count, data = metadata, permutations = 999, by="margin")
+```
+
+输出结果为:
+
+    > print(result)
+    Permutation test for adonis under reduced model
+    Marginal effects of terms
+    Permutation: free
+    Number of permutations: 1000
+
+    adonis2(formula = BC.dist ~ Batch + Age + Gender + Group + Edu_yrs + BMI + ND_score + ECOG_score + MMSE + MoCA_B + ACEIII_score + host_removed_count, data = metadata, permutations = 1000, by = "margin")
+                        Df SumOfSqs      R2      F   Pr(>F)    
+    Batch                1    0.712 0.00588 2.8605 0.001998 ** 
+    Age                  1    0.428 0.00353 1.7197 0.018981 *  
+    Gender               1    0.334 0.00275 1.3395 0.126873    
+    Group                4    1.001 0.00826 1.0049 0.464535    
+    Edu_yrs              1    0.216 0.00178 0.8680 0.630370    
+    BMI                  1    0.422 0.00348 1.6933 0.026973 *  
+    ND_score             1    0.582 0.00480 2.3364 0.002997 ** 
+    ECOG_score           1    0.173 0.00143 0.6958 0.876124    
+    MMSE                 1    0.153 0.00126 0.6129 0.950050    
+    MoCA_B               1    0.171 0.00141 0.6854 0.897103    
+    ACEIII_score         1    0.201 0.00166 0.8078 0.743257    
+    host_removed_count   1    1.704 0.01406 6.8419 0.000999 ***
+    Residual           460  114.536 0.94541                    
+    Total              475  121.149 1.00000                    
+    ---
+    Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+```{r}
+result_df = as.data.frame(vegan::scores(result))
+result_df_filter = result_df[!(rownames(result_df) %in% c("Residual", "Total")), ]
+#result_df_sort = result_df_filter[order(result_df_filter$R2,decreasing=TRUE),]
+result_df_filter$variable = row.names(result_df_filter)
+
+###
+result_df_filter$variable[which(result_df_filter$variable=="host_removed_count")] <- "ReadsCount"
+result_df_filter$variable[which(result_df_filter$variable=="Batch")] <- "Batch"
+result_df_filter$variable[which(result_df_filter$variable=="ND_score")] <- "Diet"
+result_df_filter$variable[which(result_df_filter$variable=="Edu_yrs")] <- "EduYears"
+result_df_filter$variable[which(result_df_filter$variable=="ECOG_score")] <- "ECOG"
+result_df_filter$variable[which(result_df_filter$variable=="ACEIII_score")] <- "ACEIII"
+
+colnames(result_df_filter)[which(colnames(result_df_filter)=="Pr(>F)")] <- "Pvalue"
+
+result_df_filter$log_Pvalue = -log10(result_df_filter$Pvalue)
+result_df_filter$percent_R2 = 100 * (result_df_filter$R2)
+
+result_df_sort = result_df_filter[order(result_df_filter$percent_R2,decreasing=TRUE),]
+colnames(result_df_sort)
+rownames(result_df_sort)
+```
+
+## 2. 绘图
+
+参考: 1.
+<https://community.rstudio.com/t/creating-a-grouped-barplot-with-two-y-axes-in-r/126745/2>
+2. <https://r-graph-gallery.com/line-chart-dual-Y-axis-ggplot2.html>
+
+绘制PERMANOVA P value和Variance explained的图片:
+
+```{r}
+#library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+
+####
+result_df_melt <- reshape2::melt(data=result_df_sort[,c("variable", 'percent_R2','log_Pvalue')],
+                       id.vars = "variable", variable.name="Group", value.name="Count")
+
+###
+print(unique(result_df_melt$Group))
+result_df_melt$Group <- as.character(result_df_melt$Group)
+result_df_melt$Group[result_df_melt$Group=="percent_R2"] = "Variance"
+result_df_melt$Group[result_df_melt$Group=="log_Pvalue"] = "P value"
+
+
+print(colnames(result_df_sort))
+result_df_melt$variable = factor(result_df_melt$variable,
+     levels=c(unique(result_df_melt$variable)))
+
+result_df_melt$Group = factor(result_df_melt$Group, levels=c('P value', 'Variance'))
+
+###
+result_df_melt = result_df_melt %>%
+    mutate(scaled_count=ifelse(Group=="P value",Count, Count*2))
+```
+
+```{r}
+colors = c("#ffa500", "#2970a0")
+img <- ggplot(result_df_melt, aes(x=variable, y = scaled_count, fill= Group)) + 
+  geom_col(position="dodge") + 
+  geom_hline(yintercept=-log10(0.05), linetype="dashed", size=0.5, color = "black") + 
+  annotate("text", x=10, y=-log10(0.05)+0.15, label="P < 0.05") + 
+  scale_fill_manual(values=colors) + 
+  scale_y_continuous(
+      name="PERMANOVA P-value", breaks=c(0, 1, 2, 3), limits=c(0, 3.2), labels=c('1', '0.1', '0.01', '0.001'),
+      sec.axis = sec_axis(trans=~.*0.5,   name = "Variance explained (%)", breaks=c(0, 0.5, 1, 1.5)))+
+  labs(title ="PERMANOVA (n=476)") + 
+  theme_bw() + 
+  theme(
+    axis.text.x = element_text(size=12, hjust = 1, angle =30),
+    axis.text.y = element_text(size=12, hjust = 0.5),
+    axis.title.x = element_text(size=12, hjust = 0.5),
+    axis.title.y = element_text(size=12, color = "#ffa500",  hjust = 0.5),
+    axis.title.y.right = element_text(size=12, color = "#2970a0",  hjust = 0.5),
+    plot.title = element_text(size=14, hjust=0.5),
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank()
+  )
+
+print(img)
+
+pdf(file.path(workdir, "PERMANOVA_KOs.pdf"), width=7, height=3.5)
+print(img)
+dev.off()
+```
