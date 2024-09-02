@@ -1,0 +1,230 @@
+---
+title: "MaAsLin2_validation_scatter"
+author: "jialh"
+date: "2024-08-07"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+读取差异丰度分析的结果:
+```{r cars}
+workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MaAsLin2_validation"
+validation_df = read.csv(file.path(workdir, "KOs", "MaAsLin2_KOs_merge.csv"), header=1, row.names=1)
+
+
+discovery_dir = "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff"
+discovery_df = read.csv(file.path(discovery_dir, "KOs", "MMUPHin_KOs_merge.csv"), header=1, row.names=1)
+discovery_df = discovery_df[rowSums(discovery_df[c("qval.SCS", "qval.SCD", "qval.MCI", "qval.AD")]<0.25)>=1, ]
+
+merge_df = merge(discovery_df, validation_df, by.x="row.names", by.y="row.names", all.x=TRUE)
+merge_df[is.na(merge_df)] = 1
+
+
+inputdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\00profile" 
+KOs_desc = read.csv(file.path(inputdir, "KEGG_KOs_to_pathways_metabolism.csv"), header=1, row.names=1)
+KOs_desc$KO_short_name = stringr::str_split_fixed(KOs_desc$KO_name, ";", n=2)[,1]
+KOs_desc$Pathway_category2_short = stringr::str_split_fixed(KOs_desc$Pathway_category2, " ", n=2)[,2]
+
+merge_df = merge(merge_df, KOs_desc, by.x="Row.names", by.y="row.names")
+merge_df$KO_desc = gsub("Ubiquinone and other terpenoid-quinone biosynthesis", "Terpenoid-quinone biosynthesis", merge_df$KO_desc)
+print("K03179 (Terpenoid−quinone biosynthesis)" %in% merge_df$KO_desc)
+row.names(merge_df) = merge_df$KO_desc
+```
+
+添加颜色和形状所需的列:
+```{r cars}
+merge_df$SCS_validation = ifelse(merge_df$qval.SCS.x<0.25 & merge_df$qval.SCS.y<0.25 & (merge_df$coef.SCS.x * merge_df$coef.SCS.y > 0), "validated", 'invalidated')
+merge_df$SCS_validation = factor(merge_df$SCS_validation, levels=c("validated", 'invalidated'))
+
+merge_df$SCD_validation = ifelse(merge_df$qval.SCD.x<0.25 & merge_df$qval.SCD.y<0.25 & (merge_df$coef.SCD.x * merge_df$coef.SCD.y > 0), "validated", 'invalidated')
+merge_df$SCD_validation = factor(merge_df$SCD_validation, levels=c("validated", 'invalidated'))
+
+merge_df$MCI_validation = ifelse(merge_df$qval.MCI.x<0.25 & merge_df$qval.MCI.y<0.25 & (merge_df$coef.MCI.x * merge_df$coef.MCI.y > 0), "validated", 'invalidated')
+merge_df$MCI_validation = factor(merge_df$MCI_validation, levels=c("validated", 'invalidated'))
+
+merge_df$AD_validation = ifelse(merge_df$qval.AD.x<0.25 & merge_df$qval.AD.y<0.25 & (merge_df$coef.AD.x * merge_df$coef.AD.y > 0), "validated", 'invalidated')
+merge_df$AD_validation = factor(merge_df$AD_validation, levels=c("validated", 'invalidated'))
+colors = c("#ea716d", "#999999")
+
+merge_df$SCS_specific = ifelse(merge_df$qval.SCS.x<0.25 & rowSums(merge_df[, c("qval.SCD.x", "qval.MCI.x", "qval.AD.x")]<0.25)==0, "specific", 'non-specific')
+merge_df$SCS_specific = factor(merge_df$SCS_specific, levels=c("specific", 'non-specific'))
+
+merge_df$SCD_specific = ifelse(merge_df$qval.SCD.x<0.25 & rowSums(merge_df[, c("qval.SCS.x", "qval.MCI.x", "qval.AD.x")]<0.25)==0, "specific", 'non-specific')
+merge_df$SCD_specific = factor(merge_df$SCD_specific, levels=c("specific", 'non-specific'))
+
+merge_df$MCI_specific = ifelse(merge_df$qval.MCI.x<0.25 & rowSums(merge_df[, c("qval.SCS.x", "qval.SCD.x", "qval.AD.x")]<0.25)==0, "specific", 'non-specific')
+merge_df$MCI_specific = factor(merge_df$MCI_specific, levels=c("specific", 'non-specific'))
+
+merge_df$AD_specific = ifelse(merge_df$qval.AD.x<0.25 & rowSums(merge_df[, c("qval.SCS.x", "qval.SCD.x", "qval.MCI.x")]<0.25)==0, "specific", 'non-specific')
+merge_df$AD_specific = factor(merge_df$AD_specific, levels=c("specific", 'non-specific'))
+
+colors = c("#ea716d", "#999999")
+shapes = c(17, 16)
+
+merge_df$SCS_label = merge_df$KO_desc
+merge_df$SCS_label[!((merge_df$SCS_validation=="validated") & (merge_df$SCS_specific=="specific") & (merge_df$qval.SCS.x< 0.10 | merge_df$qval.SCS.y<1e-10))] = ""
+merge_df$SCD_label = merge_df$KO_desc
+merge_df$SCD_label[!((merge_df$SCD_validation=="validated") & (merge_df$SCD_specific=="specific") & (merge_df$qval.SCD.x<0.25))] = ""
+merge_df$MCI_label = merge_df$KO_desc
+merge_df$MCI_label[!((merge_df$MCI_validation=="validated") & (merge_df$MCI_specific=="specific") & (merge_df$qval.MCI.x<0.10 | merge_df$qval.SCS.y<1e-10))] = ""
+merge_df$AD_label = merge_df$KO_desc
+merge_df$AD_label[!((merge_df$AD_validation=="validated") & (merge_df$AD_specific=="specific") & (merge_df$qval.AD.x<0.10))] = ""
+
+
+write.csv(merge_df, file.path(outdir, "merge_KOs_validation.csv"))
+print(nrow(merge_df[merge_df$SCS_specific=="specific" & merge_df$SCS_validation=="validated", ]))
+print(nrow(merge_df[merge_df$SCD_specific=="specific" & merge_df$SCD_validation=="validated", ]))
+print(nrow(merge_df[merge_df$MCI_specific=="specific" & merge_df$MCI_validation=="validated", ]))
+print(nrow(merge_df[merge_df$AD_specific=="specific" & merge_df$AD_validation=="validated", ]))
+```
+绘制散点图:
+```{r}
+library(ggplot2)
+library(ggrepel)
+library(scales)
+options(scipen=0)
+
+mytheme <- theme(
+            panel.grid.minor.x = element_blank(),
+            panel.grid.minor.y = element_blank(), 
+            legend.position="top", 
+            axis.text.x = element_text(size=12, hjust = 0.5),
+            axis.title.x = element_text(size = 12),
+            axis.text.y = element_text(size = 12),
+            axis.title.y = element_text(size = 12),
+            plot.title = element_text(hjust=0.5, size=14),
+            plot.subtitle = element_text(hjust=0.5, size=12),
+            strip.text.x = element_text(size=12),
+            legend.text=element_text(size=12),
+            legend.title=element_blank()
+            )
+
+x_axis_values = c(0, -log10(0.25), 1, 2, 3)
+x_axis_labels = c(0, round(-log10(0.25),2),1, 2, 3)
+
+y_axis_values = c(0, -log10(0.25), 5, 10, 15)
+y_axis_labels = c(0, round(-log10(0.25),2),  5, 10, 15)
+outdir = "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MaAsLin2_validation\\KOs"
+stages = c("SCS", "SCD", "MCI", "AD")
+
+stage = "SCS"
+print(merge_df$SCS_label)
+print(paste0("deal with ", stage))
+pdf(file.path(outdir, paste0(stage, "_scatter_validation.pdf")), width=4, height=4)
+p1 <- ggplot(data = merge_df, aes(x = -log10(get(paste0("qval.", stage, ".x")) + 1e-6), y = -log10(get(paste0("qval.", stage, ".y")) + 1e-15)))+  
+      geom_point(aes(shape=get(paste0(stage, "_specific")),  colour = get(paste0(stage, "_validation"))), size=2) +
+      scale_color_manual(values=colors) + 
+      scale_shape_manual(values=shapes) + 
+      geom_vline(xintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) +
+      geom_hline(yintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) + 
+      geom_text_repel(aes(label=SCS_label), size=2, nudge_x = 0.2, nudge_y = 0.2, max.overlaps=100) + 
+      labs(x="-log10(q-value in our cohort)", y="-log10(q-value in gut simulator)", title=paste0(stage, "-associated KOs")) +
+      scale_x_continuous(breaks= x_axis_values, labels=x_axis_labels, limits=c(-0.1, 4)) + 
+      scale_y_continuous(breaks= y_axis_values, labels=y_axis_labels, limits=c(-0.1, 16)) +
+      theme_bw() + 
+      mytheme
+print(p1) # 或者 print (p1)
+dev.off()
+```
+结果分析:
+```{r}
+pdf(file.path(outdir, paste0("SCS_scatter_validation.pdf")), width=6, height=6)
+p1 <- ggplot(data = merge_df, aes(x = -log10(get(paste0("qval.SCS.x")) + 1e-6), y = -log10(get(paste0("qval.SCS.y")) + 1e-15)))+  
+      geom_point(aes(shape=get(paste0("SCS_specific")),  colour = get(paste0("SCS_validation"))), size=2) +
+      scale_color_manual(values=colors) + 
+      scale_shape_manual(values=shapes) + 
+      geom_vline(xintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) +
+      geom_hline(yintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) + 
+      geom_text_repel(aes(label=SCS_label), size=2, nudge_x = 0.2, nudge_y = 0.2, max.overlaps=100) + 
+      labs(x="-log10 (q-value in our cohort)", y="-log10 (q-value in gut simulator)", title=paste0("SCS-associated KOs")) +
+      scale_x_continuous(breaks= x_axis_values, labels=x_axis_labels, limits=c(-0.1, 4)) + 
+      scale_y_continuous(breaks= y_axis_values, labels=y_axis_labels, limits=c(-0.1, 16)) +
+      theme_bw() + 
+      mytheme
+print(p1) # 或者 print (p1)
+dev.off()
+```
+
+
+```{r}
+pdf(file.path(outdir, paste0("SCD_scatter_validation.pdf")), width=6, height=6)
+p2 <- ggplot(data = merge_df, aes(x = -log10(get(paste0("qval.SCD.x")) + 1e-6), y = -log10(get(paste0("qval.SCD.y")) + 1e-15)))+  
+      geom_point(aes(shape=get(paste0("SCD_specific")),  colour = get(paste0("SCD_validation"))), size=2) +
+      scale_color_manual(values=colors) + 
+      scale_shape_manual(values=shapes) + 
+      geom_vline(xintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) +
+      geom_hline(yintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) + 
+      geom_text_repel(aes(label=SCD_label), size=2, nudge_x = 0.2, nudge_y = 0.2, max.overlaps=100) + 
+      labs(x="-log10 (q-value in our cohort)", y="-log10 (q-value in gut simulator)", title=paste0("SCD-associated KOs")) +
+      scale_x_continuous(breaks= x_axis_values, labels=x_axis_labels, limits=c(-0.1, 4)) + 
+      scale_y_continuous(breaks= y_axis_values, labels=y_axis_labels, limits=c(-0.1, 16)) +
+      theme_bw() + 
+      mytheme
+print(p2) # 或者 print (p1)
+dev.off()
+```
+
+
+```{r}
+stage = "MCI"
+print(paste0("deal with ", stage))
+pdf(file.path(outdir, paste0("MCI_scatter_validation.pdf")), width=6, height=6)
+p3 <- ggplot(data = merge_df, aes(x = -log10(get(paste0("qval.MCI.x")) + 1e-6), y = -log10(get(paste0("qval.MCI.y")) + 1e-15)))+  
+      geom_point(aes(shape=get(paste0("MCI_specific")),  colour = get(paste0("MCI_validation"))), size=2) +
+      scale_color_manual(values=colors) + 
+      scale_shape_manual(values=shapes) + 
+      geom_vline(xintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) +
+      geom_hline(yintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) + 
+      geom_text_repel(aes(label=MCI_label), size=2, nudge_x = 0.2, nudge_y = 0.2, max.overlaps=100) + 
+      labs(x="-log10 (q-value in our cohort)", y="-log10 (q-value in gut simulator)", title=paste0("MCI-associated KOs")) +
+      scale_x_continuous(breaks= x_axis_values, labels=x_axis_labels, limits=c(-0.1, 4)) + 
+      scale_y_continuous(breaks= y_axis_values, labels=y_axis_labels, limits=c(-0.1, 16)) +
+      theme_bw() + 
+      mytheme
+print(p3) # 或者 print (p1)
+dev.off()
+```
+
+
+```{r}
+stage = "AD"
+print(paste0("deal with ", stage))
+pdf(file.path(outdir, paste0("AD_scatter_validation.pdf")), width=6, height=6)
+p4 <- ggplot(data = merge_df, aes(x = -log10(get(paste0("qval.AD.x")) + 1e-6), y = -log10(get(paste0("qval.AD.y")) + 1e-15)))+  
+      geom_point(aes(shape=get(paste0("AD_specific")),  colour = get(paste0("AD_validation"))), size=2) +
+      scale_color_manual(values=colors) + 
+      scale_shape_manual(values=shapes) + 
+      geom_vline(xintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) +
+      geom_hline(yintercept = -log10(0.25), linetype = "dashed", color = "grey", linewidth=0.5) + 
+      geom_text_repel(aes(label=AD_label), size=2, nudge_x = 0.2, nudge_y = 0.2, max.overlaps=100) + 
+      labs(x="-log10 (q-value in our cohort)", y="-log10 (q-value in gut simulator)", title=paste0("AD-associated KOs")) +
+      scale_x_continuous(breaks= x_axis_values, labels=x_axis_labels, limits=c(-0.1, 4)) + 
+      scale_y_continuous(breaks= y_axis_values, labels=y_axis_labels, limits=c(-0.1, 16)) +
+      theme_bw() + 
+      mytheme
+print(p4) # 或者 print (p1)
+dev.off()
+```
+合并多个子图:
+```{r}
+library(ggpubr)
+pdf(file.path(outdir, "merge_scatter_validation.pdf"), width=13, height=4)
+merge_img = ggarrange(p1, p2, p3, p4, nrow=1, ncol=4, common.legend = TRUE, labels=letters[1:4])
+print(merge_img)
+dev.off()
+```
+合并多个子图:
+```{r}
+library(ggpubr)
+pdf(file.path(outdir, "merge_scatter_validation_two_columns.pdf"), width=8, height=8)
+merge_img = ggarrange(p1, p2, p3, p4, nrow=2, ncol=2, common.legend = TRUE, labels=letters[1:4])
+print(merge_img)
+dev.off()
+```
+

@@ -1,0 +1,37 @@
+2024-08-07 11:00:20.564769 INFO::Writing function arguments to log file
+2024-08-07 11:00:20.56775 DEBUG::Function arguments
+2024-08-07 11:00:20.569623 DEBUG::Output folder: D:\Zhaolab2020\gut-brain-axis\metaAD\01MLmodels\multikingdom/03MaAsLin2_validation/KOs/MaAsLin2_KOs_allvsNC
+2024-08-07 11:00:20.571105 DEBUG::Min Abundance: 0.000000
+2024-08-07 11:00:20.572329 DEBUG::Min Prevalence: 0.100000
+2024-08-07 11:00:20.573169 DEBUG::Normalization: TSS
+2024-08-07 11:00:20.574004 DEBUG::Transform: LOG
+2024-08-07 11:00:20.574805 DEBUG::Analysis method: LM
+2024-08-07 11:00:20.575609 DEBUG::Max significance: 0.250000
+2024-08-07 11:00:20.577174 DEBUG::Random effects:
+2024-08-07 11:00:20.578508 DEBUG::Fixed effects: Group,Age,BMI,host_removed_count
+2024-08-07 11:00:20.579851 DEBUG::Correction method: BH
+2024-08-07 11:00:20.580817 DEBUG::Standardize: FALSE
+2024-08-07 11:00:20.581804 DEBUG::Cores: 4
+2024-08-07 11:00:20.582948 INFO::Verifying options selected are valid
+2024-08-07 11:00:20.585279 INFO::Determining format of input files
+2024-08-07 11:00:20.588609 INFO::Input format is data samples as rows and metadata samples as rows
+2024-08-07 11:00:20.603403 DEBUG::A total of 25 samples were found in both the data and metadata
+2024-08-07 11:00:20.604794 DEBUG::Reordering data/metadata to use same sample ordering
+2024-08-07 11:00:20.63928 INFO::Formula for fixed effects: expr ~  Group + Age + BMI + host_removed_count
+2024-08-07 11:00:20.641661 INFO::Filter data based on min abundance and min prevalence
+2024-08-07 11:00:20.643238 INFO::Total samples in data: 25
+2024-08-07 11:00:20.645208 INFO::Min samples required with min abundance for a feature not to be filtered: 2.500000
+2024-08-07 11:00:20.697953 INFO::Total filtered features: 0
+2024-08-07 11:00:20.700105 INFO::Filtered feature names from abundance and prevalence filtering:
+2024-08-07 11:00:20.794858 INFO::Total filtered features with variance filtering: 0
+2024-08-07 11:00:20.797142 INFO::Filtered feature names from variance filtering:
+2024-08-07 11:00:20.798779 INFO::Running selected normalization method: TSS
+2024-08-07 11:00:20.851773 INFO::Bypass z-score application to metadata
+2024-08-07 11:00:20.854006 INFO::Running selected transform method: LOG
+2024-08-07 11:00:20.930611 INFO::Running selected analysis method: LM
+2024-08-07 11:00:20.932603 INFO::Creating cluster of 4 R processes
+2024-08-07 11:01:42.743874 INFO::Counting total values for each feature
+2024-08-07 11:01:45.469162 INFO::Writing residuals to file D:\Zhaolab2020\gut-brain-axis\metaAD\01MLmodels\multikingdom/03MaAsLin2_validation/KOs/MaAsLin2_KOs_allvsNC/residuals.rds
+2024-08-07 11:01:45.80483 INFO::Writing fitted values to file D:\Zhaolab2020\gut-brain-axis\metaAD\01MLmodels\multikingdom/03MaAsLin2_validation/KOs/MaAsLin2_KOs_allvsNC/fitted.rds
+2024-08-07 11:01:45.866715 INFO::Writing all results to file (ordered by increasing q-values): D:\Zhaolab2020\gut-brain-axis\metaAD\01MLmodels\multikingdom/03MaAsLin2_validation/KOs/MaAsLin2_KOs_allvsNC/all_results.tsv
+2024-08-07 11:01:46.261581 INFO::Writing the significant results (those which are less than or equal to the threshold of 0.250000 ) to file (ordered by increasing q-values): D:\Zhaolab2020\gut-brain-axis\metaAD\01MLmodels\multikingdom/03MaAsLin2_validation/KOs/MaAsLin2_KOs_allvsNC/significant_results.tsv

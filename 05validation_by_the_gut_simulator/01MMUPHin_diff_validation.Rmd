@@ -1,0 +1,350 @@
+---
+title: "top10_features_vary"
+author: "jialh"
+date: "2024-06-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+加载所需的包:
+```{r}
+library(data.table)
+library(MMUPHin)
+#检查某个包的版本
+packageVersion("MMUPHin")
+library(Maaslin2)
+#检查某个包的版本
+packageVersion("Maaslin2")
+library(ConQuR)
+packageVersion("ConQuR")
+```
+差异丰度统计: 
+```{r}
+library(ComplexHeatmap)
+library(circlize)
+library(rlist)
+library(VennDiagram)
+library(dplyr)
+taxon_types = c("KOs", "pathways")
+# taxon_types = c("species")
+for (taxon_type in taxon_types){
+    #taxon_type = "species"
+    workdir <- "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+    inputdir <- file.path(workdir, "03MMUPHin_diff", taxon_type)
+    outdir <- file.path(workdir, "03MMUPHin_diff", taxon_type)
+    diff_df = read.csv(file.path(inputdir, paste0("MMUPHin_", taxon_type, "_merge.csv")))
+    row.names(diff_df) = diff_df$feature
+    MMUPHin_stat <- data.frame()
+    MMUPHin_features <- list()
+    MMUPHin_features_merge <- list()
+    stages = c("SCS", "SCD", "MCI", "AD")
+    #feat_types = c("A", "B", "F", "V")
+    #feat_types = c("KOs")
+    study = "CHN+CHN2"
+    for (stage in stages){
+        ##注意图2d中最终选择的差异KOs阈值是0.01。
+        diff_count = nrow(diff_df[(diff_df[paste0("qval.", stage)] < 0.25) , ])
+        diff_species = row.names(diff_df[(diff_df[paste0("qval.", stage)] < 0.25), ])
+        MMUPHin_stat[taxon_type, paste0("NC_vs_", stage)] = diff_count
+        MMUPHin_features[[paste0("NC_vs_", stage, "_", taxon_type)]] <- diff_species
+        MMUPHin_features_merge <- c(MMUPHin_features_merge, diff_species)
+    }
+    
+    # print(MMUPHin_stat)
+    # print(MMUPHin_features)
+    write.csv(MMUPHin_stat, file.path(outdir, "MMUPHin_stat.csv"))
+    #source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\pipelines\\03MMUPHin_diff.R")
+    #MMUPHin_stat_plot(workdir, MMUPHin_stat, MMUPHin_features)
+    
+    MMUPHin_features_merge <- unlist(MMUPHin_features_merge)
+    MMUPHin_features_df <- as.data.frame(table(MMUPHin_features_merge))
+    MMUPHin_features_df_sort <- MMUPHin_features_df[order(MMUPHin_features_df$Freq, decreasing = TRUE),]
+    MMUPHin_features_outfile <- file.path(outdir, "MMUPHin_features_merge.csv")
+    write.csv(MMUPHin_features_df_sort, MMUPHin_features_outfile, row.names = FALSE)
+}
+```
+MMUPHin的可视化热图
+```{r}
+#rm(list=ls())
+workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+#workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+#source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\01preprocess\\00load_data.R")
+taxon_type = "species"
+infile = file.path(workdir, "00profile", paste0("metadata_", taxon_type, ".csv"))
+metadata_taxon <- data.table::fread(infile, sep=",",  header=TRUE, stringsAsFactors = FALSE)
+metadata_taxon <- as.data.frame(metadata_taxon)
+row.names(metadata_taxon) <- metadata_taxon$Sample
+metadata_taxon_filter = metadata_taxon[metadata_taxon$Batch %in% c('CHN', 'CHN2'), ]
+metadata_taxon_filter$Group <- factor(metadata_taxon_filter$Group, levels = c("NC", "SCS", "SCD", "MCI", "AD"))
+
+
+metadata <- metadata_taxon_filter[, 1:15]
+taxon <- metadata_taxon_filter[, 16:ncol(metadata_taxon)]
+script_dir <- "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic"
+source(file.path(script_dir, "01preprocess", "01feature_prepare.R"))
+if (taxon_type=="species"){
+    taxon_rel_filter = merge_feats(taxon, feat_type="ABFV", min_abundance=1e-4, min_prevalence=0.1)
+}else if(taxon_type %in% c("KOs", "pathways", "GMMs", "GBMs")){
+    taxon_rel_filter = merge_feats(taxon, feat_type=taxon_type, min_abundance=1e-6, min_prevalence=0.1)
+}
+#taxon_rel_filter = merge_feats(taxon, feat_type="ABFV", min_abundance=1e-4, min_prevalence=0.1)
+
+##统计古细菌、细菌、真菌和病毒的数量。
+print(dim(taxon_rel_filter[, grepl("k__Archaea", colnames(taxon_rel_filter))]))  ##70
+print(dim(taxon_rel_filter[, grepl("k__Bacteria", colnames(taxon_rel_filter))]))  ##876
+print(dim(taxon_rel_filter[, grepl("k__Fungi", colnames(taxon_rel_filter))]))    ##37
+print(dim(taxon_rel_filter[, grepl("k__Viruses", colnames(taxon_rel_filter))]))  ##48
+#print(length(unique(colnames(taxon_rel_filter))))
+
+print(colnames(metadata))
+print(colnames(taxon)[1:5])
+```
+结果分析:
+
+```{r}
+#rm(list=ls())
+workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+#workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+#source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\01preprocess\\00load_data.R")
+taxon_type = "species"
+infile = file.path(workdir, "00profile", paste0("metadata_", taxon_type, "_validation.csv"))
+metadata_taxon_validation <- data.table::fread(infile, sep=",",  header=TRUE, stringsAsFactors = FALSE)
+metadata_taxon_validation <- as.data.frame(metadata_taxon_validation)
+row.names(metadata_taxon_validation) <- metadata_taxon_validation$Sample
+metadata_taxon_validation <- metadata_taxon_validation[metadata_taxon_validation$day %in% c("Day4", "Day5", "Day6", "Day7", "Day8"), ]
+# metadata_taxon_filter = metadata_taxon[metadata_taxon$Batch %in% c('CHN', 'CHN2'), ]
+# metadata_taxon$Group <- factor(metadata_taxon$Group, levels = c("NC", "SCS", "SCD", "MCI", "AD"))
+
+
+metadata_validation <- metadata_taxon_validation[, 1:20]
+taxon_validation <- metadata_taxon_validation[, 21:ncol(metadata_taxon_validation)]
+script_dir <- "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic"
+source(file.path(script_dir, "01preprocess", "01feature_prepare.R"))
+if (taxon_type=="species"){
+    taxon_rel_validation_filter = merge_feats(taxon_validation, feat_type="ABFV", min_abundance=1e-4, min_prevalence=0.0)
+}else if(taxon_type %in% c("KOs", "pathways", "GMMs", "GBMs")){
+    taxon_rel_validation_filter = merge_feats(taxon_validation, feat_type=taxon_type, min_abundance=1e-6, min_prevalence=0.0)
+}
+```
+
+
+所选特征的Heatmap分析展示:
+```{r}
+#remove(list=ls())
+library(stringr)
+library(ComplexHeatmap)
+
+# inputdir = "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03multi_omics"
+# species_in_heatmap = read.csv(file.path(inputdir, "KOs_species_cor_heatmap.csv"), header=1, row.names=1)
+# taxon_list = colnames(species_in_heatmap)
+# taxon_list = gsub(".k__", "|k__", taxon_list)
+# taxon_list = gsub(".p__", "|p__", taxon_list)
+# taxon_list = gsub(".c__", "|c__", taxon_list)
+# taxon_list = gsub(".o__", "|o__", taxon_list)
+# taxon_list = gsub(".f__", "|f__", taxon_list)
+# taxon_list = gsub(".g__", "|g__", taxon_list)
+# taxon_list = gsub(".s__", "|s__", taxon_list)
+
+#dev.off()
+if(taxon_type=="KOs"){
+    infile = file.path("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff", taxon_type, "MMUPHin_features_merge.csv")
+    diff_taxon_df <-read.csv(infile, header=1)
+    taxon_list <- diff_taxon_df[diff_taxon_df['Freq']>=1, 'MMUPHin_features_merge']
+}else{
+    infile = file.path("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff", taxon_type, "MMUPHin_features_merge.csv")
+    diff_taxon_df <-read.csv(infile, header=1)
+    taxon_list <- diff_taxon_df[diff_taxon_df['Freq']>=1, 'MMUPHin_features_merge']
+}
+
+
+
+#colnames(taxon_rel_filter) = gsub("^.*s__", "", colnames(taxon_rel_filter))
+print(colnames(colnames(taxon_rel_filter))[1:5])
+taxon_rel_selected <- taxon_rel_filter[, colnames(taxon_rel_filter) %in% taxon_list]
+
+meta_taxon_rel_selected <- merge(metadata, taxon_rel_selected, by.x="row.names", by.y="row.names")
+meta_taxon_rel_selected$Group <- factor(meta_taxon_rel_selected$Group, levels=c("NC", "SCS", "SCD", "MCI", "AD"))
+
+row.names(meta_taxon_rel_selected) = meta_taxon_rel_selected$Row.names
+features = meta_taxon_rel_selected[,17:ncol(meta_taxon_rel_selected)]
+feat.all = t(features)
+
+
+###
+#colnames(taxon_rel_validation_filter) = gsub("^.*s__", "", colnames(taxon_rel_validation_filter))
+taxon_rel_validation_selected <- taxon_rel_validation_filter[, colnames(taxon_rel_validation_filter) %in% taxon_list]
+meta_taxon_rel_validation_selected <- merge(metadata_validation, taxon_rel_validation_selected, by.x="row.names", by.y="row.names")
+
+row.names(meta_taxon_rel_validation_selected) = meta_taxon_rel_validation_selected$Row.names
+features_validation = meta_taxon_rel_validation_selected[,22:ncol(meta_taxon_rel_validation_selected)]
+feat.all_validation = t(features_validation)
+```
+
+将丰度表转化为generalized fold change
+
+```{r}
+##参考代码: https://github.com/zellerlab/crc_meta/blob/master/src/marker_analysis.R#L67
+library(dplyr)
+results = c("SCS", "SCD", "MCI", "AD", 'SCS(val)', 'SCD(val)', 'MCI(val)', 'AD(val)')
+gFC = matrix(NA, nrow=nrow(feat.all), ncol=length(results), dimnames=list(row.names(feat.all), results))
+
+stages = c("SCS", "SCD", "MCI", "AD")
+for (feature in row.names(feat.all)){
+  for (stage in stages) {
+    # feature = row.names(feat.all)[1]
+    # stage = "AD"
+    ##########################################
+    case_abundance <- feat.all[feature, metadata %>% 
+                    filter(Group==stage) %>% pull(Sample)]
+    NC_abundance <- feat.all[feature, metadata %>% 
+                    filter(Group=='NC') %>% pull(Sample)]
+    if(taxon_type == "species"){
+        log.n0 = 1e-6
+    }else if(taxon_type %in% c("KOs", "pathways", "GMMs", "GBMs")){
+        log.n0 = 1e-8
+    }
+    
+    # FC
+    q.case <- quantile(log10(case_abundance+log.n0), probs=seq(.1, .9, .05))
+    q.NC <- quantile(log10(NC_abundance+log.n0), probs=seq(.1, .9, .05))
+    fold_change <- sum(q.case - q.NC)/length(q.case)
+    gFC[feature, stage] <- fold_change
+    
+    #########################################################################################
+    if((stage %in% c("SCS", "SCD", "MCI", "AD")) & (feature %in% row.names(feat.all_validation))){
+        #print(paste0("deal with stage=", stage, " ", feature))
+        case_abundance_validation <- feat.all_validation[feature, rownames(metadata_validation)[metadata_validation$Group==stage]]
+        NC_abundance_validation <- feat.all_validation[feature, rownames(metadata_validation)[metadata_validation$Group=="NC"]]
+        if(taxon_type == "species"){
+            log.n0 = 1e-6
+        }else if(taxon_type %in% c("KOs", "pathways", "GMMs", "GBMs")){
+            log.n0 = 1e-8
+        }
+        
+        # FC
+        q.case_validation <- quantile(log10(case_abundance_validation+log.n0), probs=seq(.1, .9, .05))
+        q.NC_validation <- quantile(log10(NC_abundance_validation+log.n0), probs=seq(.1, .9, .05))
+        fold_change_validation <- sum(q.case_validation - q.NC_validation)/length(q.case_validation)
+        #print(paste0("deal with stage=", stage, ", ", feature, ", gFC=", fold_change_validation))
+        gFC[feature, paste0(stage, "(val)")] <- fold_change_validation
+    }
+  }
+}
+
+gFC[is.na(gFC)] = 0.0
+gFC = as.data.frame(gFC)
+#gFC = gFC[(gFC$AD) * (gFC$`AD(val)`) > 0, ]
+```
+
+```{r cars}
+graphlandir = file.path("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff", taxon_type)
+if(taxon_type == "KOs"){
+    coef_df = read.csv(file.path(graphlandir, "MMUPHin_diff_merge.csv"), header=TRUE, row.names=1)
+    qval_df = read.csv(file.path(graphlandir, "MMUPHin_diff_qvalue.csv"), header=TRUE, row.names=1)
+}else{
+    coef_df = read.csv(file.path(graphlandir, "MMUPHin_diff_merge.csv"), header=TRUE, row.names=1)
+    qval_df = read.csv(file.path(graphlandir, "MMUPHin_diff_qvalue.csv"), header=TRUE, row.names=1)
+}
+
+###
+colnames(coef_df) = gsub("coef.", "", colnames(coef_df))
+colnames(qval_df) = gsub("qval.", "", colnames(qval_df))
+all.equal(row.names(coef_df), row.names(qval_df), check.attributes = FALSE)
+all.equal(colnames(coef_df), colnames(qval_df), check.attributes = FALSE)
+all.equal(row.names(coef_df), row.names(gFC), check.attributes = FALSE)
+
+coef_df = coef_df[row.names(gFC), ]
+qval_df = qval_df[row.names(gFC), ]
+
+##
+marker_df = coef_df
+for(row in rownames(coef_df)){
+    for(col in colnames(coef_df)){
+        coef = coef_df[row, col]
+        qval = qval_df[row, col]
+        #print(paste0("coef: ", coef, ", qval: ", qval))
+        if((!is.na(coef)) & (!is.na(qval))){
+            #print(paste0("coef: ", coef, ", qval: ", qval))
+            if(coef>0 & qval<0.25){
+                marker_df[row, col] = "+"
+            }else if(coef<0 & qval<0.25){
+                marker_df[row, col] = "-"
+            }
+        }
+    }
+}
+#print(marker_df)
+# marker_df$NC = ""
+marker_df = marker_df[, c("SCS", "SCD", "MCI", "AD")]
+# marker_df$`SCS(val)`[gFC$SCS * gFC$`SCS(val)` > 0] = "*"
+# marker_df$`SCD(val)`[gFC$SCD * gFC$`SCD(val)` > 0] = "*"
+# marker_df$`MCI(val)`[gFC$MCI * gFC$`MCI(val)` > 0] = "*"
+# marker_df$`AD(val)`[gFC$AD * gFC$`AD(val)` > 0] = "*"
+
+
+
+marker_df[is.na(marker_df)] = ""
+#row.names(marker_df) = gsub("^.*s__", "", row.names(marker_df))
+#rownames(marker_df_filter) <- gsub('^k__.*s__', '', rownames(marker_df_filter), perl = TRUE)
+```
+绘制热图: 
+```{r}
+#column_split = c(rep('Four studies', times=2), rep('Three studies', times=3), rep('Two studies', times=11))
+# rownames(gFC) <- gsub('^k__.*s__', '', rownames(gFC), perl = TRUE)
+
+#gFC_filter = gFC[gFC$Group %in% c("NC",'AD'), ]
+#row_split = c(rep('Archaea', times=4), rep('Bacteria', times=8), rep('Fungi', times=1), rep('Viruses', times=10))
+
+print(min(gFC))
+print(max(gFC))
+
+title = "Key species validated by gut simulator"
+width= 8
+height= 12
+merge_gFC = gFC[, c("SCS", "SCD", "MCI", "AD", 'SCS(val)', 'SCD(val)', 'MCI(val)', 'AD(val)')]
+
+taxon_names = gsub('\\|k__Heunggongvirae', '', rownames(merge_gFC), perl = FALSE)
+taxon_names = gsub('k__Eukaryota\\|', '', taxon_names, perl = FALSE)
+kingdom_list <- gsub('^k__(.*)\\|p__.*', '\\1', taxon_names, perl = TRUE)
+print(unique(kingdom_list))
+kingdom_list = factor(kingdom_list, levels=c("Archaea", "Bacteria", "Fungi", "Viruses"))
+row_ha = rowAnnotation(kingdom= kingdom_list, col=list(kingdom = c("Archaea"="#00b7da",  "Bacteria"="#66c2a5", "Fungi"="#fc8d62", "Viruses"="#6666ff")))
+#draw(row_ha)
+
+rownames(merge_gFC) <- gsub('^k__.*s__', '', rownames(merge_gFC), perl = TRUE)
+rownames(marker_df) <- gsub('^k__.*s__', '', rownames(marker_df), perl = TRUE)
+
+#marker_df = marker_df[row.names(merge_gFC), ]
+print(row.names(merge_gFC))
+print(row.names(marker_df))
+col_fun = circlize::colorRamp2(breaks=c(-2.0, 0, 2.0), colors=c("#4c51a5", "#ffffff","#e53c2d"))
+pdf(file.path(workdir, "03MMUPHin_diff", taxon_type,  paste0("03MMUPHin_species_heatmap_validation.pdf")), width=width, height=height)
+img <- Heatmap(merge_gFC, name = "Abundance", left_annotation = row_ha,
+                   col = col_fun, column_title = title,
+                   cell_fun = function(j, i, x, y, width, height, fill) {
+                        grid.text(marker_df[i, j], x, y, gp = gpar(fontsize = 10))
+                   },
+                   column_split = c("a", "a", "a", "a", "b", "b", "b", "b"),
+                   column_gap = unit(5, "mm"),
+                    cluster_rows = TRUE, cluster_columns = FALSE,
+                    rect_gp = gpar(col = "black", lwd = 1),
+                    row_names_side = "left", column_names_side = "bottom", 
+                    row_title_side = "left", column_title_side = "top",
+                    row_names_max_width = unit(16, "cm"), 
+                    column_title_gp = gpar(fontsize=12),
+                    row_title_gp = gpar(fontsize=12),
+                    row_dend_gp = gpar(), 
+                    column_dend_gp = gpar(),
+                    row_names_gp = gpar(fontsize = 12),
+                    column_names_rot = 30,
+                    column_names_gp = gpar(fontsize = 12),
+                    heatmap_legend_param = list(title = "gFC", legend_width = unit(4, "cm"), 
+                                                position = "top", direction = "horizontal", title_position = "lefttop",
+                                                title_gp = gpar(fontsize = 10),
+                                                labels_gp = gpar(fontsize = 10)))
+draw(img, padding = unit(c(2, 2, 2, 2), "mm"), heatmap_legend_side="top", show_heatmap_legend=TRUE)
+dev.off()
+```

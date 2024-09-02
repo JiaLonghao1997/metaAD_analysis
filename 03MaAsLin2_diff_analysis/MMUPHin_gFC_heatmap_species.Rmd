@@ -1,0 +1,401 @@
+---
+title: "metaAD_analysis"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-03-19"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+####################################################################################################
+## 4. MMUPHin的可视化热图###########################################################################
+####################################################################################################
+```{r}
+library(ComplexHeatmap)
+library(circlize)
+library(rlist)
+library(VennDiagram)
+library(dplyr)
+#taxon_types = c("GMMs", "GBMs")
+taxon_types = c("species")
+for (taxon_type in taxon_types){
+    workdir <- "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+    inputdir <- file.path(workdir, "03MMUPHin_diff", taxon_type)
+    outdir <- file.path(workdir, "03MMUPHin_diff", taxon_type)
+    if(taxon_type=="species"){
+        A_df = read.csv(file.path(inputdir, "MMUPHin_A_allvsNC.csv"))
+        B_df = read.csv(file.path(inputdir, "MMUPHin_B_allvsNC.csv"))
+        F_df = read.csv(file.path(inputdir, "MMUPHin_F_allvsNC.csv"))
+        V_df = read.csv(file.path(inputdir, "MMUPHin_V_allvsNC.csv"))
+        A_df_wide <- reshape(A_df[, c("feature", "value", "coef", "qval")], idvar = "feature", timevar = "value", direction = "wide")
+        B_df_wide <- reshape(B_df[, c("feature", "value", "coef", "qval")], idvar = "feature", timevar = "value", direction = "wide")
+        F_df_wide <- reshape(F_df[, c("feature", "value", "coef", "qval")], idvar = "feature", timevar = "value", direction = "wide")
+        V_df_wide <- reshape(V_df[, c("feature", "value", "coef", "qval")], idvar = "feature", timevar = "value", direction = "wide")
+        #diff_df1$species_name = sub(".*s__", "",  diff_df1$species)
+        diff_df = rbind(A_df_wide, B_df_wide, F_df_wide, V_df_wide)
+        diff_df[is.na(diff_df)] = 1.0
+        diff_df$feature = gsub(".k__", "|k__", diff_df$feature)
+        diff_df$feature = gsub(".p__", "|p__", diff_df$feature)
+        diff_df$feature = gsub(".c__", "|c__", diff_df$feature)
+        diff_df$feature = gsub(".o__", "|o__", diff_df$feature)
+        diff_df$feature = gsub(".f__", "|f__", diff_df$feature)
+        diff_df$feature = gsub(".g__", "|g__", diff_df$feature)
+        diff_df$feature = gsub(".s__", "|s__", diff_df$feature)
+        write.csv(diff_df, file.path(inputdir, paste0("MMUPHin_", taxon_type, "_merge.csv")), row.names=FALSE)
+        
+    }else{
+        diff_df_long = read.csv(file.path(inputdir, paste0("MMUPHin_", taxon_type, "_merge.csv")))
+        diff_df = reshape(diff_df_long[, c("feature", "value", "coef", "qval")], idvar = "feature", timevar = "value", direction = "wide")
+        diff_df[is.na(diff_df)] = 1.0
+    }
+    
+    row.names(diff_df) = diff_df$feature
+    MMUPHin_stat <- data.frame()
+    MMUPHin_features <- list()
+    MMUPHin_features_merge <- list()
+    stages = c("SCS", "SCD", "MCI", "AD")
+    #feat_types = c("A", "B", "F", "V")
+    #feat_types = c("KOs")
+    study = "CHN+CHN2"
+    print(colnames(diff_df))
+    for (stage in stages){
+        ##注意图2d中最终选择的差异KOs阈值是0.01。
+        diff_count = nrow(diff_df[(diff_df[paste0("qval.", stage)] < 0.25) , ])
+        diff_species = row.names(diff_df[(diff_df[paste0("qval.", stage)] < 0.25), ])
+        MMUPHin_stat[taxon_type, paste0("NC_vs_", stage)] = diff_count
+        MMUPHin_features[[paste0("NC_vs_", stage, "_", taxon_type)]] <- diff_species
+        MMUPHin_features_merge <- c(MMUPHin_features_merge, diff_species)
+    }
+    
+    # print(MMUPHin_stat)
+    # print(MMUPHin_features)
+    write.csv(MMUPHin_stat, file.path(outdir, "MMUPHin_stat.csv"))
+    #source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\pipelines\\03MMUPHin_diff.R")
+    #MMUPHin_stat_plot(workdir, MMUPHin_stat, MMUPHin_features)
+    
+    MMUPHin_features_merge <- unlist(MMUPHin_features_merge)
+    MMUPHin_features_df <- as.data.frame(table(MMUPHin_features_merge))
+    MMUPHin_features_df_sort <- MMUPHin_features_df[order(MMUPHin_features_df$Freq, decreasing = TRUE),]
+    MMUPHin_features_outfile <- file.path(outdir, "MMUPHin_features_merge.csv")
+    write.csv(MMUPHin_features_df_sort, MMUPHin_features_outfile, row.names = FALSE)
+}
+```
+MMUPHin的可视化热图
+```{r}
+rm(list=ls())
+workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+#workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom"
+#source("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic\\01preprocess\\00load_data.R")
+taxon_type = "species"
+infile = file.path(workdir, "00profile", paste0("metadata_", taxon_type, ".csv"))
+metadata_taxon <- data.table::fread(infile, sep=",",  header=TRUE, stringsAsFactors = FALSE)
+metadata_taxon <- as.data.frame(metadata_taxon)
+row.names(metadata_taxon) <- metadata_taxon$Sample
+metadata_taxon_filter = metadata_taxon[metadata_taxon$Batch %in% c('CHN', 'CHN2'), ]
+metadata_taxon$Group <- factor(metadata_taxon$Group, levels = c("NC", "SCS", "SCD", "MCI", "AD"))
+
+
+metadata <- metadata_taxon_filter[, 1:15]
+taxon <- metadata_taxon_filter[, 16:ncol(metadata_taxon)]
+script_dir <- "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\statistic"
+source(file.path(script_dir, "01preprocess", "01feature_prepare.R"))
+if (taxon_type=="species"){
+    taxon_rel_filter = merge_feats(taxon, feat_type="ABFV", min_abundance=1e-4, min_prevalence=0.1)
+}else if(taxon_type %in% c("KOs", "pathways", "GMMs", "GBMs")){
+    taxon_rel_filter = merge_feats(taxon, feat_type=taxon_type, min_abundance=1e-6, min_prevalence=0.1)
+}
+#taxon_rel_filter = merge_feats(taxon, feat_type="ABFV", min_abundance=1e-4, min_prevalence=0.1)
+
+##统计古细菌、细菌、真菌和病毒的数量。
+print(dim(taxon_rel_filter[, grepl("k__Archaea", colnames(taxon_rel_filter))]))  ##70
+print(dim(taxon_rel_filter[, grepl("k__Bacteria", colnames(taxon_rel_filter))]))  ##876
+print(dim(taxon_rel_filter[, grepl("k__Fungi", colnames(taxon_rel_filter))]))    ##37
+print(dim(taxon_rel_filter[, grepl("k__Viruses", colnames(taxon_rel_filter))]))  ##48
+#print(length(unique(colnames(taxon_rel_filter))))
+
+print(colnames(metadata))
+print(colnames(taxon)[1:5])
+```
+所选特征的Heatmap分析展示:
+```{r}
+#remove(list=ls())
+library(stringr)
+library(ComplexHeatmap)
+
+#dev.off()
+if(taxon_type=="KOs"){
+    infile = file.path("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff", taxon_type, "MMUPHin_features_merge.csv")
+    diff_taxon_df <-read.csv(infile, header=1)
+    taxon_list <- diff_taxon_df[diff_taxon_df['Freq']>=1, 'MMUPHin_features_merge']
+}else{
+    infile = file.path("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff", taxon_type, "MMUPHin_features_merge.csv")
+    diff_taxon_df <-read.csv(infile, header=1)
+    taxon_list <- diff_taxon_df[diff_taxon_df['Freq']>=1, 'MMUPHin_features_merge']
+}
+
+taxon_rel_selected <- taxon_rel_filter[, colnames(taxon_rel_filter) %in% taxon_list]
+
+
+meta_taxon_rel_selected <- merge(metadata, taxon_rel_selected, by.x="row.names", by.y="row.names")
+meta_taxon_rel_selected$Group <- factor(meta_taxon_rel_selected$Group, levels=c("NC", "SCS", "SCD", "MCI", "AD"))
+
+row.names(meta_taxon_rel_selected) = meta_taxon_rel_selected$Row.names
+features = meta_taxon_rel_selected[,17:ncol(meta_taxon_rel_selected)]
+feat.all = t(features)
+```
+
+将丰度表转化为generalized fold change
+
+```{r}
+##参考代码: https://github.com/zellerlab/crc_meta/blob/master/src/marker_analysis.R#L67
+stages = c("SCS", "SCD", "MCI", "AD")
+gFC = matrix(NA, nrow=nrow(feat.all), ncol=length(stages), 
+                dimnames=list(row.names(feat.all), stages))
+
+for (feature in row.names(feat.all)){
+  for (stage in stages) {
+    #feature = row.names(feat.all)[1]
+    #stage = "AD"
+    ##########################################
+    case_abundance <- feat.all[feature, metadata %>% 
+                    filter(Group==stage) %>% pull(Sample)]
+    NC_abundance <- feat.all[feature, metadata %>% 
+                    filter(Group=='NC') %>% pull(Sample)]
+    if(taxon_type == "species"){
+        log.n0 = 1e-6
+    }else if(taxon_type %in% c("KOs", "pathways", "GMMs", "GBMs")){
+        log.n0 = 1e-8
+    }
+    
+    # FC
+    q.case <- quantile(log10(case_abundance+log.n0), probs=seq(.1, .9, .05))
+    q.NC <- quantile(log10(NC_abundance+log.n0), probs=seq(.1, .9, .05))
+    fold_change <- sum(q.case - q.NC)/length(q.case)
+    gFC[feature, stage] <- fold_change
+  }
+}
+
+
+gFC = as.data.frame(gFC)
+#gFC <- gFC[(abs(gFC$AD) > abs(gFC$SCS)) & (abs(gFC$AD) > abs(gFC$SCD)) & (abs(gFC$AD) > abs(gFC$MCI)) & (rowSums(gFC>0)==4 | rowSums(gFC<=0)==4), ]
+unmapped_species <- setdiff(diff_taxon_df$MMUPHin_features_merge, row.names(gFC))
+print(unmapped_species)
+print(unmapped_species[1] %in% colnames(taxon_rel_filter))
+print(unmapped_species[2] %in% colnames(taxon_rel_filter))
+```
+************************************************************************
+准备热图中的符号:
+************************************************************************
+```{r}
+graphlandir = file.path("D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff", taxon_type)
+if(taxon_type == "KOs"){
+    coef_df = read.csv(file.path(graphlandir, "MMUPHin_diff_merge.csv"), header=TRUE, row.names=1)
+    qval_df = read.csv(file.path(graphlandir, "MMUPHin_diff_qvalue.csv"), header=TRUE, row.names=1)
+}else{
+    coef_df = read.csv(file.path(graphlandir, "MMUPHin_diff_merge.csv"), header=TRUE, row.names=1)
+    qval_df = read.csv(file.path(graphlandir, "MMUPHin_diff_qvalue.csv"), header=TRUE, row.names=1)
+}
+
+###
+colnames(coef_df) = gsub("coef.", "", colnames(coef_df))
+colnames(qval_df) = gsub("qval.", "", colnames(qval_df))
+all.equal(row.names(coef_df), row.names(qval_df), check.attributes = FALSE)
+all.equal(colnames(coef_df), colnames(qval_df), check.attributes = FALSE)
+all.equal(row.names(coef_df), row.names(gFC), check.attributes = FALSE)
+
+##
+marker_df = coef_df
+for(row in rownames(coef_df)){
+    for(col in colnames(coef_df)){
+        coef = coef_df[row, col]
+        qval = qval_df[row, col]
+        #print(paste0("coef: ", coef, ", qval: ", qval))
+        if((!is.na(coef)) & (!is.na(qval))){
+            #print(paste0("coef: ", coef, ", qval: ", qval))
+            if(coef>0 & qval<0.25){
+                marker_df[row, col] = "+"
+            }else if(coef<0 & qval<0.25){
+                marker_df[row, col] = "-"
+            }
+        }
+    }
+}
+#print(marker_df)
+# marker_df$NC = ""
+marker_df = marker_df[, c("SCS", "SCD", "MCI", "AD")]
+marker_df[is.na(marker_df)] = ""
+marker_df_filter = marker_df[row.names(gFC), ]
+qval_df_filter = qval_df[row.names(gFC),]
+rownames(marker_df_filter) <- gsub('^k__.*s__', '', rownames(marker_df_filter), perl = TRUE)
+```
+
+绘制热图: 
+```{r}
+#column_split = c(rep('Four studies', times=2), rep('Three studies', times=3), rep('Two studies', times=11))
+# rownames(gFC) <- gsub('^k__.*s__', '', rownames(gFC), perl = TRUE)
+
+#gFC_filter = gFC[gFC$Group %in% c("NC",'AD'), ]
+#row_split = c(rep('Archaea', times=4), rep('Bacteria', times=8), rep('Fungi', times=1), rep('Viruses', times=10))
+
+print(min(gFC))
+print(max(gFC))
+
+title = "Differential species"
+width= 8
+height= 12
+merge_gFC = gFC[, c("SCS", "SCD", "MCI", "AD")]
+
+taxon_names = gsub('\\|k__Heunggongvirae', '', rownames(merge_gFC), perl = FALSE)
+taxon_names = gsub('k__Eukaryota\\|', '', taxon_names, perl = FALSE)
+kingdom_list <- gsub('k__(.*)\\|p__.*', '\\1', taxon_names, perl = TRUE)
+print(unique(kingdom_list))
+kingdom_list = factor(kingdom_list, levels=c("Archaea", "Bacteria", "Fungi", "Viruses"))
+row_ha = rowAnnotation(kingdom= kingdom_list, col=list(kingdom = c("Archaea"="#00b7da", "Bacteria"="#66c2a5", "Fungi"="#fc8d62", "Viruses"="#6666ff")))
+#draw(row_ha)
+
+rownames(merge_gFC) <- gsub('^k__.*s__', '', rownames(merge_gFC), perl = TRUE)
+
+#marker_df_filter = marker_df_filter[row.names(merge_gFC), ]
+print(row.names(merge_gFC))
+print(row.names(marker_df_filter))
+col_fun = circlize::colorRamp2(breaks=c(-0.5, 0, 0.5), colors=c("#4c51a5", "#ffffff","#e53c2d"))
+#outdir = file.path(workdir, "03MMUPHin_diff", taxon_type)
+outdir = "D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff\\species"
+pdf(file.path(outdir,  paste0("03MMUPHin_", taxon_type, "_heatmap.pdf")), width=width, height=height)
+img <- Heatmap(merge_gFC, name = "Abundance", left_annotation = row_ha,
+               col = col_fun, column_title = title,
+               cell_fun = function(j, i, x, y, width, height, fill) {
+                    grid.text(marker_df_filter[i, j], x, y, gp = gpar(fontsize = 10))
+               },
+                cluster_rows = TRUE, cluster_columns = FALSE,
+                rect_gp = gpar(col = "black", lwd = 1),
+                row_names_side = "left", column_names_side = "bottom", row_title_side = "left", column_title_side = "top",
+                row_names_max_width = unit(16, "cm"), 
+                column_title_gp = gpar(fontsize=14),
+                row_title_gp = gpar(fontsize=14),
+                row_dend_gp = gpar(), 
+                column_dend_gp = gpar(),
+                row_names_gp = gpar(fontsize = 12),
+                column_names_rot = 0,
+                column_names_gp = gpar(fontsize = 12),
+                heatmap_legend_param = list(title = "gFC", legend_width = unit(2, "cm"), 
+                                            position = "top", direction = "horizontal", title_position = "lefttop",
+                                            title_gp = gpar(fontsize = 10),
+                                            labels_gp = gpar(fontsize = 10)))
+draw(img, padding = unit(c(2, 2, 2, 2), "mm"), heatmap_legend_side="top", show_heatmap_legend=TRUE)
+dev.off()
+```
+
+######################################################################################################
+######################################################################################################
+#########################################统计显著上调和下调的物种数目#################################
+```{r}
+# ####<----------------统计显著上调和下调的物种数目---------------->####
+# workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff\\species"
+# data = read.csv(file.path(workdir, "01up_down_stage.csv"), header=1)
+# print(colnames(data))
+# data <- data[data$count>0, ]
+# print(unique(data$stage))
+# # data$stage[data$stage=="SCS"] = "NC_vs_SCS"
+# # data$stage[data$stage=="SCD"] = "NC_vs_SCD"
+# # data$stage[data$stage=="MCI"] = "NC_vs_MCI"
+# # data$stage[data$stage=="AD"] = "NC_vs_AD"
+# data$stage <- factor(data$stage, levels=c("SCS", "SCD", "MCI", "AD"))
+# 
+# print(unique(data$taxon))
+# data$taxon <- factor(data$taxon, levels=c("Archaea",  "Bacteria", "Fungi"))
+# 
+# print(unique(data$change))
+# data$change <- factor(data$change, levels=c("Depletion", "Elevation"))
+# 
+# colors = c("#36bccb", "#ff6836")
+# 
+# ##
+# p1 <- ggplot(data, aes(x=stage, y= count, fill = change, label = count))+
+#     geom_bar(stat='identity', position = "stack") + 
+#     geom_text(size = 3, position = position_stack(vjust = 0.5)) + 
+#     facet_grid(. ~ taxon) + 
+#     labs(title= "differential species from different kingdom", xlab="stages", ylab="count") +
+#     scale_fill_manual(values=colors) + 
+#     theme_bw() + 
+#     theme(
+#         panel.grid = element_blank(),
+#         axis.text.x = element_text(size=12, angle = 60, hjust=1),
+#         axis.text.y = element_text(size=12),
+#         axis.title.x = element_text(size=14),
+#         strip.text.x = element_text(size=12),
+#         axis.title.y = element_text(size=14),
+#         legend.title = element_text(size=14),
+#         legend.text = element_text(size=12),
+#         legend.position = "top", 
+#         plot.title = element_text(size = 14, hjust=0.5))+
+#     scale_y_continuous(limits=c(0, 22), breaks=seq(0, 20, 5), labels=seq(0,20,5))
+# print(p1)
+# 
+# pdf(file.path(workdir, "diff_species_count.pdf"), width=8, height=3)
+# print(p1)
+# dev.off()
+# 
+# 
+# ####
+# ####<----------------统计显著上调和下调的物种数目---------------->####
+# workdir="D:\\Zhaolab2020\\gut-brain-axis\\metaAD\\01MLmodels\\multikingdom\\03MMUPHin_diff\\species"
+# data = read.csv(file.path(workdir, "01up_down_stage_phylum.csv"), header=1)
+# print(colnames(data))
+# 
+# 
+# data <- data[data$count>0, ]
+# 
+# print(unique(data$stage))
+# # data$stage[data$stage=="SCS"] = "NC_vs_SCS"
+# # data$stage[data$stage=="SCD"] = "NC_vs_SCD"
+# # data$stage[data$stage=="MCI"] = "NC_vs_MCI"
+# # data$stage[data$stage=="AD"] = "NC_vs_AD"
+# data$stage <- factor(data$stage, levels=c("SCS", "SCD", "MCI", "AD"))
+# 
+# print(unique(data$taxon))
+# data$taxon <- factor(data$taxon, levels=c("Ascomycota", "Bacteroidota", "Euryarchaeota", "Firmicutes"))
+# 
+# print(unique(data$change))
+# data$change <- factor(data$change, levels=c("Depletion", "Elevation"))
+# 
+# colors = c("#36bccb", "#ff6836")
+# 
+# ##
+# p2 <- ggplot(data, aes(x=stage, y= count, fill = change, label = count))+
+#     geom_bar(stat='identity', position = "stack") + 
+#     geom_text(size = 3, position = position_stack(vjust = 0.5)) + 
+#     facet_wrap(~ taxon, nrow=1) + 
+#     labs(title= "differential species from different phylum", xlab="stages", ylab="count") +
+#     scale_fill_manual(values=colors) + 
+#     theme_bw() + 
+#     theme(
+#         panel.grid = element_blank(),
+#         axis.text.x = element_text(size=12, angle = 60, hjust=1),
+#         axis.text.y = element_text(size=12),
+#         axis.title.x = element_text(size=14),
+#         strip.text.x = element_text(size=12),
+#         axis.title.y = element_text(size=14),
+#         legend.title = element_text(size=14),
+#         legend.text = element_text(size=12),
+#         legend.position = "top", 
+#         plot.title = element_text(size = 14, hjust=0.5))+
+#     scale_y_continuous(limits=c(0, 12), breaks=seq(0, 12, 3), labels=seq(0,12,3))
+# print(p2)
+# 
+# pdf(file.path(workdir, "diff_species_count_in_phylum.pdf"), width=8, height=3)
+# print(p2)
+# dev.off()
+```
+合并两个图:
+```{r}
+# library(ggpubr)
+# pdf(file.path(workdir, "diff_species_count_merge.pdf"), width=8, height=6)
+# ggarrange(p1, p2, ggarrange="hv", nrow=2, labels=letters[1:2], common.legend = TRUE)
+# dev.off()
+```
+
